@@ -1,0 +1,299 @@
+{% extends 'base_main.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/admin.css">
+{% endblock %}
+
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page">Info</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+</ul>
+{% endblock %}
+
+
+{% block body %}
+
+<div class="cmpg">
+    <div class="w_m">WELCOME Admin</div>
+    <div class="active_cmpg">
+        <div class="subHeading" style="color:black">ONGOING CAMPAIGNS</div>
+        <hr>
+        {% for i in campaign.query.filter_by(status="Active").all() %}
+        <div class="subcards mb-3">
+            Name:{{i.name}}
+            <div class="separator">|</div>
+            Niche: {{i.niche}}
+            <div class="separator">|</div>
+            Start Date: {{i.start_date}}
+            <div class="separator">|</div>
+            End Date: {{i.end_date}}
+            <div class="button-group">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_campaign_{{i.id}}">View
+                    Campaign
+                    Details</button>
+            </div>
+        </div>
+
+        <!--Modal for View Campaign-->
+        <div class="modal fade" id="v_campaign_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="v_campaign_title_{{i.id}}">Campaign Detail </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            data-bs-toggle="modal" data-bs-target="#v_campaignlabel_{{i.id}}"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            <strong>Name: </strong>{{i.name}}<br>
+                            <strong>Requirements: </strong>{{i.requirement}}<br>
+                            <strong>Start Date: </strong>{{i.start_date}}<br>
+                            <strong>End Date: </strong>{{i.end_date}}<br>
+                            <strong>Goals: </strong>{{i.goals}}<br>
+                            <strong>Sponsor: </strong>{{sponsor.query.get(i.sponsor_id).name}}<br>
+                        </p>
+                        <hr>
+                        {% if i.flagged%}
+                        <button class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#flag_c_{{i.id}}">Unflag</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#flag_c_{{i.id}}">Flag</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for flag_campaign -->
+        <div class="modal fade" id="flag_c_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="flag_c_{{ i.id }}">
+                            {% if i.flagged%}
+                            Do you really want to Unflag it?
+                            {% else %}
+                            Do you really want to flag it?
+                            {% endif %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="{{ url_for('controller.admin_dashboard', email=user.email) }}" method="POST">
+                            <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                            <button name="flag_btn_c" class="btn btn-danger">
+                                {% if i.flagged%}
+                                Unflag
+                                {% else %}
+                                Flag
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+    <div class="flagged" style="position:relative">
+        <div class="subHeading" style="color:black">FLAGGED CAMPAIGNS</div>
+        <hr>
+        {% for i in campaign.query.filter_by(flagged=True).all() %}
+        <div class="subcards mb-3">
+            Name:{{i.name}}
+            <div class="separator">|</div>
+            Niche: {{i.niche}}
+            <div class="separator">|</div>
+            Start Date: {{i.start_date}}
+            <div class="separator">|</div>
+            End Date: {{i.end_date}}
+            <div class="button-group">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_campaign_{{i.id}}">View
+                    Campaign
+                    Details</button>
+                {% if i.flagged%}
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#flag_c_{{i.id}}">Unflag</button>
+                {% else %}
+                <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                    data-bs-target="#flag_c_{{i.id}}">Flag</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!--Modal for View Campaign-->
+        <div class="modal fade" id="v_campaign_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="v_campaign_title_{{i.id}}">Campaign Detail </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            data-bs-toggle="modal" data-bs-target="#v_campaignlabel_{{i.id}}"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            <strong>Name: </strong>{{i.name}}<br>
+                            <strong>Requirements: </strong>{{i.requirement}}<br>
+                            <strong>Start Date: </strong>{{i.start_date}}<br>
+                            <strong>End Date: </strong>{{i.end_date}}<br>
+                            <strong>Goals: </strong>{{i.goals}}<br>
+                            <strong>Sponsor: </strong>{{sponsor.query.get(i.sponsor_id).name}}<br>
+                        </p>
+                        <hr>
+                        {% if i.flagged%}
+                        <button class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#flag_c_{{i.id}}">Unflag</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#flag_c_{{i.id}}">Flag</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for flag_campaign -->
+        <div class="modal fade" id="flag_c_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="flag_c_{{ i.id }}">
+                            {% if i.flagged%}
+                            Do you really want to Unflag it?
+                            {% else %}
+                            Do you really want to flag it?
+                            {% endif %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="{{ url_for('controller.admin_dashboard', email=user.email) }}" method="POST">
+                            <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                            <button name="flag_btn_c" class="btn btn-danger">
+                                {% if i.flagged%}
+                                Unflag
+                                {% else %}
+                                Flag
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+    <div class="flagged" style="position:relative">
+        <div class="subHeading" style="color:black">FLAGGED INFLUENCERS</div>
+        <hr>
+        {% for i in influencer.query.filter_by(flagged=True).all() %}
+        <div class="subcards mb-3">
+            {{i.name}}
+            <div class="separator">|</div>
+            {{i.social_platform}}
+            <div class="separator">|</div>
+            {{i.category}}
+            <div class="button-group">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_influencer_{{i.id}}">View
+                    Profile</button>
+                {% if i.flagged%}
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#flag_i_{{i.id}}">Unflag</button>
+                {% else %}
+                <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                    data-bs-target="#flag_i_{{i.id}}">Flag</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!--Modal for View  Influencer-->
+        <div class="modal fade" id="v_influencer_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="v_influencer_title_{{i.id}}">Influencer Detail </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            data-bs-toggle="modal" data-bs-target="#v_influencerlabel_{{i.id}}"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="text-align: center;padding: 20px;">
+                            {% if i.profile %}
+                            {% set loc=i.profile[1:] %}
+                            <img src="{{loc}}" alt="Unable to load image !!" height="200px" width="200px"
+                                style="border-radius: 50%;">
+                            {% else %}
+                            <div style="display: flex;">
+                                <img src="/static/Images_used/default_profile.png" alt="Unable to load image !!"
+                                    height="200px" width="200px">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <hr>
+                        <p>
+                            <strong>Name: </strong>{{i.name}}<br>
+                            <strong>Social Platforms: </strong>{{i.social_platform}}<br>
+                            <strong>Category: </strong>{{i.category}}<br>
+                            <strong>Niche: </strong>{{i.niche}}<br>
+                            <strong>Social Media Link: </strong>{{i.socialMediaLink}}
+                        </p>
+                        {% if i.flagged%}
+                        <button class="btn btn-danger" data-bs-toggle="modal"
+                            data-bs-target="#flag_i_{{i.id}}">Unflag</button>
+                        {% else %}
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#flag_i_{{i.id}}">Flag</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for flag_influencer -->
+        <div class="modal fade" id="flag_i_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="flag_i_{{ i.id }}">
+                            {% if i.flagged%}
+                            Do you really want to Unflag it?
+                            {% else %}
+                            Do you really want to flag it?
+                            {% endif %}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="{{ url_for('controller.find', email=user.email) }}" method="POST">
+                            <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                            <button name="flag_btn_i" class="btn btn-danger">
+                                {% if i.flagged%}
+                                Unflag
+                                {% else %}
+                                Flag
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

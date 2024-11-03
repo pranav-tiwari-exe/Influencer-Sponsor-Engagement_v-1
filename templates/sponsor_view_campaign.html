@@ -1,0 +1,337 @@
+{% extends 'base_main.html' %}
+{% block title %}Sponsor Dashboard{% endblock %}
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/sponsor.css">
+{% endblock %}
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page">Your Campaigns</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_dashboard',email=user.email)}}">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block prebody %}
+{% if campaign.flagged %}
+<div style="color:rgba(255, 105, 105, 0.641);">This Campaign have been Flagged!!! contact the support for more info</div>
+{% endif %}
+{% endblock %}
+
+{% block body %}
+<div class="profile_card">
+    <div class="w_m mb-3" style="color:black;font-size:2em;">Name : {{campaign.name}}</div>
+    <hr>
+    <p>
+        <strong>Description :</strong> {{campaign.description}}<br>
+        <strong>Start Date :</strong> {{campaign.start_date}}<br>
+        <strong>End Date :</strong> {{campaign.end_date}}<br>
+        <strong>Budget :</strong> {{campaign.budget}}<br>
+        <strong>Status :</strong> {{campaign.status}}<br>
+        <strong>Niche :</strong> {{campaign.niche}}<br>
+        <strong>Influencers assigned :</strong>
+        {% if campaign.ad_requests %}
+        {% for i in campaign.ad_requests%}
+        {{influencer.query.get(i.influencer_id).name}},
+        {% endfor %}     
+        {% else %}
+        No Influencers assigned yet
+        {% endif %}
+    </p>
+    <button id="round_btn" data-bs-toggle="modal" data-bs-target="#choose" style="position: absolute;
+    bottom:  10%;
+    left: 11%;
+    transform: translateX(-50%);"></button>
+</div>
+<div id="cmpg" style="width:100%; text-align: center;">
+    <div class="w_m mb-3">Ad Requests</div>
+    <div class="scroll_request">
+        {% if campaign.ad_requests %}
+        {% for ad in campaign.ad_requests %}
+        <div class="request_body">
+            <div class="request_card_body">
+                <h5 class="card-title">Request ID: {{campaign.name,ad.id}}</h5>
+                <hr>
+                <div class="card-text" style="text-align: left; height: 110px; max-height: 110px; margin: 0; padding: 0;max-width: 100%;word-wrap: break-word;">
+                    {% if ad.requirements %}
+                        <strong>Requirements: </strong>{{ ad.requirements }}<br>
+                    {% else %}
+                        <div style="display: flex; position: relative; align-items: center; margin: 0; padding: 0; height:fit-content;" >
+                            <strong>Requirements: </strong>
+                            <button class="btn btn-primary" style="margin-left: 10px;" data-bs-toggle="modal" data-bs-target="#ur_{{ad.id}}">Update</button>
+                        </div>
+                    {% endif %}
+                    {% if ad.message %}
+                        <strong>Message: </strong>{{ ad.message }}<br>
+                    {% endif %}
+                    <strong>Payment Amount: </strong> ${{ad.payment_amount}}<br>
+                    <strong>Status: </strong>{{ad.status}}<br>
+                    <strong>Influencer: </strong>{{influencer.query.get(ad.influencer_id).name}}
+                </div>
+            </div>
+            <div class="card-footer">
+                {% if ad.negotiation_party=="influencer" %}
+                <div style="height:190px;overflow-y: auto;">
+                    <strong>Message form {{influencer.query.get(ad.influencer_id).name}}: </strong>{{ad.negotiation_message}}<br>
+                    <strong>Expected Amount: </strong>{{ad.expected_amount}}
+                </div>
+                    <hr>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#p_o_{{ad.id}}">Negotiate</button>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#accept_{{ad.id}}">Accept</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#reject_{{ad.id}}">Reject</button>
+                {% elif  ad.status=="Accepted" %}
+                <div style="height:190px;">
+                    <p>Progess:</p>
+                    <div class="circle_progress" style="--percentage: {{ ad.progress }};">
+                        <span class="progress_text">{{ad.progress}} %</span>
+                    </div>
+                </div>
+                <hr>
+                {% if ad.progress!=100 %}
+                <p style="color: green; font-weight: bold;">Offer Accepted</p>
+                {% else %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#payment_delete_{{ad.id}}">Make Payment</button>
+                {% endif %}
+                
+                {% else %}
+                <div style="height:190px;overflow-y: auto;">
+                    <strong>No Response Yet</strong>
+                </div>
+                <hr>
+                    <button class="btn btn-dark" disabled>Negotiate</button>
+                    <button class="btn btn-dark" disabled>Accept</button>
+                    <button class="btn btn-dark" disabled>Reject</button>
+                {% endif %}
+            </div>
+        </div>
+
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+
+
+<!-- Modal for influencer choose -->
+<div class="modal fade" id="choose" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="chooseLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content" style="background: #ffffffe1">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="chooseLabel"><strong>Choose an influencer:</strong></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% for i in influencer.query.all() %}
+                {% if not i.flagged %}
+                <div class="mb-3" style="background: rgb(253, 253, 253); padding: 10px; border-radius: 5px;">
+                    <div  style="display:flex">
+                        {{i.name}} 
+                    <div class="separator" style="margin-left: 50px;margin-right: 50px;">|</div>
+                     {{i.social_platform}}
+                    </div>
+                     <hr>
+                    <div class="button-group">
+                    <button class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#detail_{{i.id}}">Inspect</button>
+                    <button class="btn btn-success" data-bs-toggle="modal"
+                        data-bs-target="#form_{{i.id}}">Request</button>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for i in influencer.query.all() %}
+<!-- Modal for influencer details -->
+<div class="modal fade" id="detail_{{i.id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="detailLabel_{{i.id}}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: rgba(244, 244, 244, 0.871);">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="detailLabel_{{i.id}}"><strong>Influencer Details:</strong></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#choose"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Name: {{i.name}} <br>
+                    Primary Social Media Link: {{i.socialMediaLink}} <br>
+                    Category: {{i.category}} <br>
+                    Niche: {{i.niche}} <br>
+                    Active Platforms: {{i.social_platform}}<br>
+                </p>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#form_{{i.id}}">Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for adding Ad request -->
+<div class="modal fade" id="form_{{i.id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="formLabel_{{i.id}}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: rgba(255, 255, 255, 0.871);">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="formLabel_{{i.id}}"><strong>Add Request</strong></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#choose"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.view_campaign', email=user.email, campaign_id=campaign.id) }}"
+                    method="POST">
+                    <label for="requirements_{{i.id}}" class="form-label">Fill in the Requirements: </label>
+                    <textarea id="requirements_{{i.id}}" name="requirements" class="form-control"
+                        placeholder="Provide requirement for the campaign ..." required></textarea>
+                    <br>
+                    <label for="message_{{i.id}}" class="form-label">Provide Message: </label>
+                    <textarea id="message_{{i.id}}" name="message" class="form-control"
+                        placeholder="Provide a message....."></textarea>
+                    <label for="payment_amount_{{i.id}}" class="form-label">Payment Amount: </label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">$</span>
+                        <input id="payment_amount_{{i.id}}" type="number" class="form-control" name="payment_amount"
+                            required>
+                        <span class="input-group-text">.00</span>
+                    </div>
+                    <textarea name="influencer_id" style="display:none;">{{i.id}}</textarea>
+                    <button type="submit" name="add" class="btn btn-primary">ADD</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% if campaign.ad_requests %}
+{% for j in campaign.ad_requests %}
+<!-- Modal for Negotiate -->
+<div class="modal fade" id="p_o_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="p_o_label{{ j.id }}">Negotiate...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#view_{{ j.id }}"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.view_campaign', email=user.email,campaign_id=campaign.id) }}" method="POST">
+                    <label for="message">Enter Your Message: </label>
+                    <textarea name="message" class="form-control" placeholder="Message Here" required></textarea>
+                    <label for="payment_amount" class="form-label">Expected Amount: </label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">$</span>
+                        <input id="payment_amount" type="number" class="form-control" name="payment_amount" required>
+                        <span class="input-group-text">.00</span>
+                    </div>
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <button type="submit" name="s_offer" class="btn btn-primary">Place Offer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Modal for Update Requirement-->
+<div class="modal fade" id="ur_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ur_label{{ j.id }}">Negotiate...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.view_campaign', email=user.email,campaign_id=campaign.id) }}" method="POST">
+                    <label for="requirements">Enter Requirements: </label>
+                    <textarea name="requirements" class="form-control mb-3" placeholder="Message Here" required></textarea>
+                    
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <button type="submit" name="update_requirements" class="btn btn-primary">Place Offer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+   
+
+<!-- Modal for accept -->
+<div class="modal fade" id="accept_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accept_{{ j.id }}">Do you really want to accept the Offer?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#view_{{ j.id }}"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.view_campaign', email=user.email,campaign_id=campaign.id) }}" method="POST">
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <button name="accept" class="btn btn-success">Accept</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal for reject -->
+<div class="modal fade" id="reject_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reject_label_{{ j.id }}">Do you really want to Reject the Offer?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#view_{{ j.id }}"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.view_campaign', email=user.email,campaign_id=campaign.id) }}" method="POST">
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <button name="reject" class="btn btn-danger">Reject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal for Making Payment and delete -->
+<div class="modal fade" id="payment_delete_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="payment_delete_label_{{ j.id }}">Make Payment and Remove request?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.view_campaign', email=user.email,campaign_id=campaign.id) }}" method="POST">
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <textarea name="pay" style="display: none;">pay</textarea>
+                    <button name="reject" class="btn btn-primary">Pay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+{% endif %}
+
+{% endblock %}

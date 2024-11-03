@@ -1,0 +1,107 @@
+.active_cmpg,
+.cmpg_request {
+  padding: 20px;
+  background: #ffffffd1;
+  border-radius: 20px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+#round_btn {
+  width: 6em;
+  height: 6em;
+  background-image: url("/static/Images_used/add.png");
+  filter: drop-shadow(0px 5px 15px #000000) hue-rotate(66deg);
+  background-color: transparent;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+label {
+  font-weight: bold;
+}
+
+.card-content {
+  word-wrap: break-word;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+
+
+.separator {
+  border-left: 2px solid #000;
+  height: 100%;
+  margin-left: 5px;
+  color: transparent;
+}
+
+
+.scroll_request {
+  border-radius: 20px;
+  padding:20px;
+  height: 86%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+.request_body {
+  word-wrap: break-word;
+  width: 18rem;
+  text-align: center;
+  background-color: white;
+  width: 18rem;
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  justify-content: space-between;
+}
+.request_card_body {
+  overflow-y: auto;
+  padding: 20px;
+  background: #fff;
+}
+.card-footer {
+  word-wrap: break-word;
+  padding: 10px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+  text-align: center;
+}
+.card-footer .btn {
+  margin: 0 auto;
+}
+
+.circle_progress {
+  margin: auto;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(
+      #4dd152 calc(var(--percentage) * 1%), 
+      #e0e0e0 0
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+.progress_text {
+  position: absolute;
+  font-size: 24px;
+  font-weight: bold;
+  color: #000000;
+}
+
+.modal-body{
+  width:100%;
+  word-wrap: break-word;  
+}

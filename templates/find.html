@@ -1,0 +1,435 @@
+{% extends 'base_main.html' %}
+{% block title %}
+{% if user_role == 'influencer' %}
+Influencer Dashboard
+{% elif user_role == 'sponsor' %}
+Sponsor Dashboard
+{% elif user_role == 'admin' %}
+Admin Dashboard
+{% endif %}
+{% endblock %}
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/sponsor.css">
+<link rel="stylesheet" href="/static/CSS/influencer.css">
+<link rel="stylesheet" href="/static/CSS/admin.css">
+{% endblock %}
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page">Find</a>
+    </li>
+    {% if user_role == 'influencer' %}
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page"
+            href="{{url_for('controller.influencer_dashboard',email=user.email)}}">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{ url_for('controller.logout', email=user.email) }}">Logout</a>
+    </li>
+    {% elif user_role == 'sponsor' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_campaign',email=user.email)}}">Your Campaigns</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_dashboard',email=user.email)}}">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+    {% elif user_role == 'admin' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.admin_dashboard',email=user.email)}}">Info</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+    {% endif %}
+</ul>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+
+<!--FOR INFLUENCER-->
+    {% if user_role == 'influencer' %}
+    <div style="display:flex;">
+        <div class="w_m">Find Campaigns</div>
+        <form style="position: relative; margin-left:auto;" method="GET" action="">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Search for campaigns" name="query">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+    {% for i in filtered_c %}
+    {% if not i.flagged %}
+    <div class="subcards" style="margin-top: 50px;">
+        Name:{{i.name}}
+        <div class="separator">|</div>
+        Niche: {{i.niche}}
+        <div class="separator">|</div>
+        Start Date: {{i.start_date}}
+        <div class="separator">|</div>
+        End Date: {{i.end_date}}
+        <div class="button-group">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_campaign_{{i.id}}">View Campaign
+                Details</button>
+        </div>
+    </div>
+
+    <!--Modal for View Campaign-->
+    <div class="modal fade" id="v_campaign_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="v_campaign_title_{{i.id}}">Campaign Detail </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_campaignlabel_{{i.id}}"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>Name: </strong>{{i.name}}<br>
+                        <strong>Requirements: </strong>{{i.requirement}}<br>
+                        <strong>Start Date: </strong>{{i.start_date}}<br>
+                        <strong>End Date: </strong>{{i.end_date}}<br>
+                        <strong>Goals: </strong>{{i.goals}}<br>
+                        <strong>Niche: </strong>{{i.niche}}<br>
+                        <strong>Sponsor: </strong>{{sponsor.query.get(i.sponsor_id).name}}<br>
+                    </p>
+                    <hr>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#p_o_{{i.id}}">Place
+                        Bid</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Place Bid -->
+    <div class="modal fade" id="p_o_{{ i.id }}" tabindex="" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="p_o_label{{ i.id }}">Place Bid/Offer...</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_campaign_{{ i.id }}"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('controller.find', email=user.email) }}" method="POST">
+                        <label for="message">Enter Your Message: </label>
+                        <textarea name="message" class="form-control" placeholder="Message Here" required></textarea>
+                        <label for="payment_amount" class="form-label">Expected Amount: </label>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">$</span>
+                            <input id="payment_amount" type="number" class="form-control" name="payment_amount"
+                                required>
+                            <span class="input-group-text">.00</span>
+                        </div>
+                        <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                        <textarea name="u_id" style="display:none">{{ user.id }}</textarea>
+                        <button type="submit" name="bid_offer" class="btn btn-primary">Place Bid/Offer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+
+<!--FOR SPONSOR-->
+    {% elif user_role == 'sponsor' %}
+    <div style="display:flex;width: 100%;">
+        <div class="w_m">Find Influencers</div>
+        <form style="position: relative; margin-left:auto;" method="GET" action="">
+            <div class="input-group mb-3" style="position: relative; margin-left:auto;">
+                <input type="text" class="form-control" placeholder="Search for campaigns" name="query">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+    {% for i in filtered_i %}
+    {% if not i.flagged %}
+    <div class="subcards" style="margin-top: 30px;">
+        {{i.name}}
+        <div class="separator">|</div>
+        {{i.social_platform}}
+        <div class="separator">|</div>
+        {{i.category}}
+        <div class="button-group">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_influencer_{{i.id}}">View
+                Profile</button>
+        </div>
+    </div>
+    <!--Modal for View Requirements-->
+    <div class="modal fade" id="v_influencer_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="v_influencer_title_{{i.id}}">Influencer Detail </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_influencerlabel_{{i.id}}"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center;padding: 20px;">
+                        {% if i.profile %}
+                        {% set loc=i.profile[1:] %}
+                        <img src="{{loc}}" alt="Unable to load image !!" height="200px" width="200px"
+                            style="border-radius: 50%;">
+                        {% else %}
+                        <div style="display: flex;">
+                            <img src="/static/Images_used/default_profile.png" alt="Unable to load image !!"
+                                height="200px" width="200px">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <p>
+                        <strong>Name: </strong>{{i.name}}<br>
+                        <strong>Social Platforms: </strong>{{i.social_platform}}<br>
+                        <strong>Category: </strong>{{i.category}}<br>
+                        <strong>Niche: </strong>{{i.niche}}<br>
+                        <strong>Social Media Link: </strong>{{i.socialMediaLink}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+    {% endfor %}
+
+<!--FOR ADMIN-->
+    {% elif user_role == 'admin' %}
+    <div class="w_m">Find Influencers /Campaigns</div>
+    <form style="position: relative; margin-left:auto;" method="GET" action="">
+        <div class="input-group mb-3" style="gap:20px;width:fit-content;position: relative; margin-left:auto;">
+            <div>
+                <select class="form-select" id="selection" name="selection" style="width:150px;position:relative;">
+                    <option selected value="none">None</option>
+                    <option value="influencer">Influencer</option>
+                    <option value="campaign">Campaign</option>
+                </select>
+            </div>
+            <div class="search" style="display: flex; gap:20px;">
+                <input type="text" class="form-control" placeholder="Search for campaigns" name="query">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {% set show_influencers = select == "none" or select == "influencer" %}
+    {% set show_campaigns = select == "none" or select == "campaign" %}
+
+    {% if show_influencers %}
+    <p class="subHeading" style="color:white;">Influencers</p>
+    {% for i in filtered_i %}
+    
+    <div class="subcards mb-3" style="margin-top: 10px;">
+        {{i.name}}
+        <div class="separator">|</div>
+        {{i.social_platform}}
+        <div class="separator">|</div>
+        {{i.category}}
+        <div class="button-group">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_influencer_{{i.id}}">View
+                Profile</button>
+            {% if i.flagged%}
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#flag_i_{{i.id}}">Unflag</button>
+            {% else %}
+            <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                data-bs-target="#flag_i_{{i.id}}">Flag</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!--Modal for View  Influencer-->
+    <div class="modal fade" id="v_influencer_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="v_influencer_title_{{i.id}}">Influencer Detail </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_influencerlabel_{{i.id}}"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center;padding: 20px;">
+                        {% if i.profile %}
+                        {% set loc=i.profile[1:] %}
+                        <img src="{{loc}}" alt="Unable to load image !!" height="200px" width="200px"
+                            style="border-radius: 50%;">
+                        {% else %}
+                        <div style="display: flex;">
+                            <img src="/static/Images_used/default_profile.png" alt="Unable to load image !!"
+                                height="200px" width="200px">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <p>
+                        <strong>Name: </strong>{{i.name}}<br>
+                        <strong>Social Platforms: </strong>{{i.social_platform}}<br>
+                        <strong>Category: </strong>{{i.category}}<br>
+                        <strong>Niche: </strong>{{i.niche}}<br>
+                        <strong>Social Media Link: </strong>{{i.socialMediaLink}}
+                    </p>
+                    {% if i.flagged%}
+                    <button class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_i_{{i.id}}">Unflag</button>
+                    {% else %}
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_i_{{i.id}}">Flag</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for flag_influencer -->
+    <div class="modal fade" id="flag_i_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flag_i_{{ i.id }}">
+                        {% if i.flagged%}
+                        Do you really want to Unflag it?
+                        {% else %}
+                        Do you really want to flag it?
+                        {% endif %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form action="{{ url_for('controller.find', email=user.email) }}" method="POST">
+                        <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                        <button name="flag_btn_i" class="btn btn-danger">
+                            {% if i.flagged%}
+                            Unflag
+                            {% else %}
+                            Flag
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+    {% endif %}
+    <hr style="color:white;">
+    {% if show_campaigns %}
+    <p class="subHeading" style="color:white;margin-top: 30px;">Campaigns</p>
+    {% for i in filtered_c %}
+
+    <div class="subcards mb-3" style="margin-top: 10px;">
+        Name:{{i.name}}
+        <div class="separator">|</div>
+        Niche: {{i.niche}}
+        <div class="separator">|</div>
+        Start Date: {{i.start_date}}
+        <div class="separator">|</div>
+        End Date: {{i.end_date}}
+        <div class="button-group">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#v_campaign_{{i.id}}">View Campaign
+                Details</button>
+            {% if i.flagged%}
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#flag_c_{{i.id}}">Unflag</button>
+            {% else %}
+            <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                data-bs-target="#flag_c_{{i.id}}">Flag</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!--Modal for View Campaign-->
+    <div class="modal fade" id="v_campaign_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="v_campaign_title_{{i.id}}">Campaign Detail </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_campaignlabel_{{i.id}}"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>Name: </strong>{{i.name}}<br>
+                        <strong>Requirements: </strong>{{i.requirement}}<br>
+                        <strong>Start Date: </strong>{{i.start_date}}<br>
+                        <strong>End Date: </strong>{{i.end_date}}<br>
+                        <strong>Niche: </strong>{{i.niche}}<br>
+                        <strong>Goals: </strong>{{i.goals}}<br>
+                        <strong>Sponsor: </strong>{{sponsor.query.get(i.sponsor_id).name}}<br>
+                    </p>
+                    <hr>
+                    {% if i.flagged%}
+                    <button class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_c_{{i.id}}">Unflag</button>
+                    {% else %}
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_c_{{i.id}}">Flag</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for flag_campaign -->
+    <div class="modal fade" id="flag_c_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flag_c_{{ i.id }}">
+                        {% if i.flagged%}
+                        Do you really want to Unflag it?
+                        {% else %}
+                        Do you really want to flag it?
+                        {% endif %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form action="{{ url_for('controller.find', email=user.email) }}" method="POST">
+                        <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                        <button name="flag_btn_c" class="btn btn-danger">
+                            {% if i.flagged%}
+                            Unflag
+                            {% else %}
+                            Flag
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+    {% endif %}
+
+    {% else %}
+    <strong>INTERNAL ERROR !!!!</strong><br>
+    <p>please login again to continue</p>
+    {% endif %}
+
+
+
+</div>
+{% endblock %}

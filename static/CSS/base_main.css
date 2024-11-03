@@ -1,0 +1,94 @@
+body {
+  background: url("/static/Images_used/2.jpg");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.prebody {
+  text-align: center;
+}
+
+.w_m {
+  margin-right: 10px;
+  font-size: 3em;
+  color: rgb(255, 255, 255);
+  letter-spacing: 5px;
+  word-spacing: 20px;
+}
+
+.body_area {
+  padding: 20px;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  height: 90vh;
+  gap: 20px;
+}
+
+.cmpg {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.profile_card {
+  padding: 20px;
+  background:#ffffffdf;
+  border-radius: 20px;
+  width: 20%;
+  min-width: 300px;
+  height: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  text-align: left;
+}
+#profile_pic {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.table_div {
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px;
+  margin-bottom: 50px;
+  overflow-y: auto;
+}
+
+.info {
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px;
+  margin-bottom: 50px;
+}
+
+@media (max-width: 600px) {
+  .body_area {
+    flex-direction: column;
+  }
+  .profile_card {
+    width: 100%;
+  }
+}
+
+.subcards {
+  padding: 10px;
+  background: white;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+}
+
+.subHeading{
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: x-large;
+  font-weight: 400;
+  letter-spacing: 5px;
+}

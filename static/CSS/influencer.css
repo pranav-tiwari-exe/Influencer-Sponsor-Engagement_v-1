@@ -1,0 +1,25 @@
+#profile_pic {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.active_cmpg , .cmpg_request{
+    padding: 20px;
+    background: #ffffffdf;
+    border-radius: 20px;
+    flex: 1;
+    box-sizing: border-box;
+}
+
+
+.separator {
+    border-left: 2px solid #000;
+    height: 100%;
+    margin-left: 5px;
+    color: transparent;
+  }
+
+.modal-body{
+    width:100%;
+    word-wrap: break-word;  
+  }

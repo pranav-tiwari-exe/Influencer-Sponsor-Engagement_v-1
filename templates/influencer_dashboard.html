@@ -1,0 +1,324 @@
+{% extends 'base_main.html' %}
+{% block title %}Influencer Dashboard{% endblock %}
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/influencer.css">
+{% endblock %}
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="#">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{ url_for('controller.logout', email=user.email) }}">Logout</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block prebody %}
+{% if user.flagged %}
+<div style="color:rgba(255, 105, 105, 0.641);width: 100%;">You have been Flagged!!! contact the support for more info
+</div>
+{% endif %}
+{% endblock %}
+
+{% block body %}
+
+<div class="profile_card">
+    <div id="profile_pic">
+        {% if user.profile %}
+        {% set loc=user.profile[1:] %}
+        <img src="{{loc}}" alt="{{user.profile}}" height="100px" width="100px" style="border-radius: 50%;">
+        {% else %}
+        <div style="display: flex;">
+            <img src="/static/Images_used/default_profile.png" alt="Unable to load image !!" height="100px"
+                width="100px">
+            <button class="btn btn-primary" style="position: relative;margin:auto;" data-bs-toggle="modal"
+                data-bs-target="#upload"> Upload
+                Image</button>
+        </div>
+        {% endif %}
+    </div>
+    <hr>
+    <p>
+    <h2>Welcome <br>{{user.name}}</h2><br>
+    <strong>Social Platforms: </strong>{{user.social_platform}}<br>
+    <strong>Category: </strong>{{user.category}}<br>
+    <strong>Niche: </strong>{{user.niche}}<br>
+    <strong>Social Media Link: </strong>{{user.socialMediaLink}}
+    </p>
+</div>
+
+<div class="cmpg">
+    <div class="active_cmpg">
+        <p class="subHeading">ACTIVE CAMPAIGNS</p>
+        {% if user.ad_requests %}
+        {% for i in user.ad_requests %}
+        {% if i.status=="Accepted" %}
+        <div class="subcards mb-3">
+            Campaign Name: {{campaigns.query.get(i.campaign_id).name}}
+            <div class="separator">|</div>
+            Sponsor: {{sponsor.query.get(campaigns.query.get(i.campaign_id).sponsor_id).name}}
+            <div class="separator">|</div>
+            Progress: {{i.progress}} %
+            <div class="separator">|</div>
+            Niche: {{campaigns.query.get(i.campaign_id).niche}}  
+            <div class="button-group">
+                {% if i.progress!=100 %}
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#up_{{i.id}}">Update
+                    progress</button>
+                {% elif i.progress==100 %}
+                <button class="btn btn-success" disabled>Completed</button>
+                {% endif %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#vr_{{i.id}}">View
+                    Requirements</button>
+
+            </div>
+        </div>
+
+        <!--Modal for Update Progress--->
+        <div class="modal fade" id="up_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="up_title_{{i.id}}">Update Progress</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            data-bs-toggle="modal" data-bs-target="#uplabel_{{i.id}}"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form action="{{ url_for('controller.influencer_dashboard', email=user.email) }}" method="POST">
+                            <label for="slider" style="font-size: larger;">Select a value: <p class="slider-value"
+                                    id="sliderValue">{{i.progress}}%</p> </label>
+
+                            <input type="range" class="form-control mb-3"
+                                style="background-color:rgba(60, 172, 107, 0.559);border-radius: 20px;" id="slider"
+                                name="slider" min="{{i.progress}}" max="100" value="{{i.progress}}"
+                                oninput="updateValue(this.value)">
+                            <textarea name="id" style="display:none">{{ i.id }}</textarea>
+
+                            <button type="submit" class="btn btn-primary" name="up">Submit</button>
+
+                            <br>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Modal for View Requirements-->
+        <div class="modal fade" id="vr_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="vr_title_{{i.id}}">Requirements</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            data-bs-toggle="modal" data-bs-target="#vrlabel_{{i.id}}"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p>{{i.requirements}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+        {% endfor %}
+        {% else %}
+        <p style="color: aliceblue;">No Campaigns</p>
+        {% endif %}
+    </div>
+    <div class="cmpg_request">
+        <p class="subHeading">REQUESTS</p>
+        {% if user.ad_requests %}
+
+        {% for i in user.ad_requests %}
+        {% if i.status != "Accepted" %}
+        <div class="subcards mb-3">
+            Request id: {{ i.id }}
+            <div class="separator">|</div>
+            Campaign Name: {{campaigns.query.get(i.campaign_id).name}}
+            <div class="separator">|</div>
+            Payment Amount: {{ i.payment_amount}}
+            <div class="button-group">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#view_{{ i.id }}">View</button>
+            </div>
+        </div>
+
+        {% endif %}
+        {% endfor %}
+        {% else %}
+        <p style="color: aliceblue;">No Requests</p>
+        {% endif %}
+    </div>
+</div>
+
+
+{% for j in user.ad_requests %}
+<!-- Modal for View request -->
+<div class="modal fade" id="view_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="view_{{ j.id }}">Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    <strong>ID: </strong>{{ j.id }}<br>
+                    <strong>Requirements: </strong>{{ j.requirements }}<br>
+                    <strong>Message: </strong>{{ j.message }}<br>
+                    <strong>Payment Amount: </strong>{{ j.payment_amount }}<br>
+                    {% if j.negotiation_party!="Influencer" and j.negotiation_message %}
+                    <strong> Message: </strong>{{j.negotiation_message}}
+                    {% endif %}
+                </p>
+                <hr>
+                <div class="card-footer">
+                    <div style="height:190px;overflow-y: auto;">
+                        {% if j.negotiation_message  and j.negotiation_party=="sponsor" %}
+                        <strong>Message form Client: </strong>{{j.negotiation_message}}<br>
+                        <strong>Expected Amount: </strong>{{j.expected_amount}}
+                        {% endif %}
+                    </div>
+                    {% if j.negotiation_party=="influencer" %}
+                    <button class="btn btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#p_o_{{ j.id }}" disabled>Negotiate</button>
+                        <button class="btn btn-success" data-bs-toggle="modal"
+                        data-bs-target="#accept_{{ j.id }}" disabled>Accept</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#reject_{{ j.id }}" disabled>Reject</button>
+                    {% else %}
+                    <button class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#p_o_{{ j.id }}" >Negotiate</button>
+                    <button class="btn btn-success" data-bs-toggle="modal"
+                        data-bs-target="#accept_{{ j.id }}">Accept</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#reject_{{ j.id }}">Reject</button>
+                    {% endif %}
+
+                    
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+{% for j in user.ad_requests %}
+<!-- Modal for Negotiate -->
+<div class="modal fade" id="p_o_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="p_o_label{{ j.id }}">Negotiate...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#view_{{ j.id }}"></button>
+            </div>
+            <hr>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.influencer_dashboard', email=user.email) }}" method="POST">
+                    <label for="message">Enter Your Message: </label>
+                    <textarea name="message" class="form-control" placeholder="Message Here" required></textarea>
+                    <label for="payment_amount" class="form-label">Expected Amount: </label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">$</span>
+                        <input id="payment_amount" type="number" class="form-control" name="payment_amount" required>
+                        <span class="input-group-text">.00</span>
+                    </div>
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <hr>
+                    <button type="submit" name="i_offer" class="btn btn-primary">Place Offer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for j in user.ad_requests %}
+<!-- Modal for accept -->
+<div class="modal fade" id="accept_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accept_{{ j.id }}">Do you really want to accept the Offer?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#view_{{ j.id }}"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.influencer_dashboard', email=user.email) }}" method="POST">
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <button name="accept" class="btn btn-primary">Accept</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+{% for j in user.ad_requests %}
+<!-- Modal for Reject -->
+<div class="modal fade" id="reject_{{ j.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reject_label_{{ j.id }}">Do you really want to Reject the Offer?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-bs-toggle="modal" data-bs-target="#view_{{ j.id }}"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.influencer_dashboard', email=user.email) }}" method="POST">
+                    <textarea name="id" style="display:none">{{ j.id }}</textarea>
+                    <button name="reject" class="btn btn-primary">Reject</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endfor %}
+
+<!-- Modal for profile image upload -->
+<div class="modal fade" id="upload" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="Upload_label">Upload the Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.influencer_dashboard', email=user.email) }}" method="POST"
+                    enctype="multipart/form-data">
+                    <input type="file" name="image" class="form-control mb-3" accept="image/*" required>
+                    <button type="submit" name="upload" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block script %}
+<script>
+    function updateValue(val) {
+        document.getElementById('sliderValue').textContent = val;
+    }
+</script>
+{% endblock %}

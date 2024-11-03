@@ -1,0 +1,579 @@
+{% extends 'base_main.html' %}
+{% block title %}
+{% if type == 'influencer' %}
+Influencer Dashboard
+{% elif type == 'sponsor' %}
+Sponsor Dashboard
+{% elif type == 'admin' %}
+Admin Dashboard
+{% endif %}
+{% endblock %}
+
+{% block script1 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/sponsor.css">
+<link rel="stylesheet" href="/static/CSS/influencer.css">
+<link rel="stylesheet" href="/static/CSS/admin.css">
+{% endblock %}
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page">Stats</a>
+    </li>
+    {% if type == 'influencer' %}
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page"
+            href="{{url_for('controller.influencer_dashboard',email=user.email)}}">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{ url_for('controller.logout', email=user.email) }}">Logout</a>
+    </li>
+    {% elif type == 'sponsor' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_campaign',email=user.email)}}">Your Campaigns</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_dashboard',email=user.email)}}">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+    {% elif type == 'admin' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.admin_dashboard',email=user.email)}}">Info</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+    {% endif %}
+</ul>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    {% if type=="influencer" %}
+    <div>
+        <h4 class="w_m">Progress</h4>
+        <input type="hidden" id="email" value="{{ user.email }}">
+        <div class="info" style="display:flex;">
+            <div>
+                <div id="avg_percentage">Average Percentage Completed: No Data Available</div>
+                <div id="accepted_requests_count">Accepted Request Count: No Data Available</div>
+                <button class="btn btn-primary" data-bs-toggle="modal" style="margin:20px"
+                    data-bs-target="#view_campaign">View all active
+                    campaigns</button>
+            </div>
+            <div style="width: 400px; margin: 40px auto;">
+                <canvas id="pie_graph"></canvas>
+            </div>
+        </div>
+
+        <!-- Modal for  Campaign -->
+        <div class="modal fade modal-xl" id="view_campaign" data-bs-backdrop="static" data-bs-keyboard="false"
+            tabindex="-1" aria-labelledby="chooseLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: rgba(244, 244, 244, 0.871);">
+                    <div class="modal-header">
+                        <h1 class="modal-title" id="chooseLabel"><strong>Campaigns:</strong></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if user.ad_requests %}
+                        {% for i in user.ad_requests %}
+                        {% if i.status=="Accepted" %}
+                        <div class="subcards mb-3">
+                            Campaign Name: {{campaigns.query.get(i.campaign_id).name}}
+                            <div class="separator">|</div>
+                            Sponsor: {{sponsor.query.get(campaigns.query.get(i.campaign_id).sponsor_id).name}}
+                            <div class="separator">|</div>
+                            Progress: {{i.progress}} %
+                            <div class="button-group">
+
+                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#vr_{{i.id}}">View
+                                    Requirements</button>
+
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if user.ad_requests %}
+        {% for i in user.ad_requests %}
+        {% if i.status=="Accepted" %}
+
+        <!--Modal for View Requirements-->
+        <div class="modal fade" id="vr_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="vr_title_{{i.id}}">Requirements</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            data-bs-toggle="modal" data-bs-target="#view_campaign"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p>{{i.requirements}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const email = document.getElementById("email").value;
+            fetch(`/get_work_composition/${email}`)
+                .then(response => response.json())
+                .then(data => {
+                    const a = data.avg_percentage
+                    const avgPercentageElement = document.querySelector('#avg_percentage');
+                    const acceptedRequestsCountElement = document.querySelector('#accepted_requests_count');
+
+                    avgPercentageElement.textContent = `Average Percentage Completed: ${a}`;
+                    acceptedRequestsCountElement.textContent = `Accepted Requests Count: ${data.accepted_requests_count}`;
+
+                    const ctx = document.getElementById('pie_graph').getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Completed', 'Incomplete'],
+                            datasets: [{
+                                label: 'Progress',
+                                data: [a, 100 - a],
+                                backgroundColor: ['#2ecc71', '#e74c3c'],
+                                borderColor: ['#2ecc71', '#e74c3c'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                })
+        });
+    </script>
+
+    {% endif %}
+
+    {% if type=="sponsor" %}
+    <div>
+        <input type="hidden" id="email" value="{{user.email}}">
+        <div class="info">
+            <h4 class="subHeading">Request Details</h4>
+            <hr>
+            <div class="table_div"
+                style="background-color:white;border-radius: 20px;padding:10px;margin:20px;margin-bottom:50px;overflow-y: auto;">
+                <table class="table" id="sessionsTable" style="color:rgb(0, 0, 0)">
+                    <thead>
+                        <tr>
+                            <th>Campaign Name:</th>
+                            <th>Request ID: </th>
+                            <th>Influencer: </th>
+                            <th>Progress: </th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body_1">
+                        <!--++++++++++-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="info">
+            <h4 class="subHeading">Budget Info</h4>
+            <hr>
+            <div class="table_div"
+                style="background-color:white;border-radius: 20px;padding:10px;margin:20px;margin-bottom:50px;overflow-y: auto;">
+                <table class="table" id="sessionsTable" style="color:rgb(0, 0, 0)">
+                    <thead>
+                        <tr>
+                            <th>Campaign Name:</th>
+                            <th>Total Budget: </th>
+                            <th>Total Amount Spent: </th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body_2">
+                        <!--++++++++++-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const email = document.getElementById("email").value;
+
+            fetch(`/get_ad_requests/${email}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#table_body_1');
+                    tableBody.innerHTML = '';
+
+                    data.forEach(ad_request => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${ad_request.campaign_name}</td>
+                            <td>${ad_request.id}</td>
+                            <td>${ad_request.campaign_id}</td>
+                            <td>${ad_request.progress}%</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+
+            fetch(`/get_budget_info/${email}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#table_body_2');
+                    tableBody.innerHTML = '';
+
+                    data.forEach(budget_info => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${budget_info.campaign_name}</td>
+                            <td>${budget_info.total_budget}\$</td>
+                            <td>${budget_info.spent}\$</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+        });
+    </script>
+    {% endif %}
+
+    {% if type=="admin" %}
+    <div>
+        <h1
+            style="color:white;font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; ">
+            User Activity in the Last 24 Hours</h1>
+        <div class="table_div"
+            style="background-color:white;border-radius: 20px;padding:10px;margin:20px;margin-bottom:50px;max-height: 600px;overflow-y: auto;">
+            <table class="table" id="sessionsTable" style="color:rgb(0, 0, 0)">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>User ID</th>
+                        <th>Login Time</th>
+                        <th>Logout Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!--++++++++++-->
+                </tbody>
+            </table>
+        </div>
+
+        <h1
+            style="color:white;font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;">
+            Flagged Info</h1>
+        <div class="info" style="margin-bottom: 10px;">
+            <div>
+                <div class="subcards">
+                    <div id="flagged_i">Flagged Influencers: 0</div>
+                    <div class="button-group">
+                        <button id="flagged_i_btn" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#view_flagged_influencer">View Flagged Influencers</button>
+                    </div>
+                </div>
+                <hr>
+                <div class="subcards">
+                    <div id="flagged_s">Flagged Campaigns: 0</div>
+                    <div class="button-group">
+                        <button id="flagged_c_btn" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#view_flagged_campaign">View Flagged Campaigns</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+
+        <!-- Modal for flagged influencer -->
+        <div class="modal fade" id="view_flagged_influencer" data-bs-backdrop="static" data-bs-keyboard="false"
+            tabindex="-1" aria-labelledby="chooseLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: rgba(244, 244, 244, 0.871);">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="chooseLabel"><strong>Flagged Influencer:</strong></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% for i in influencer.query.all() %}
+                        {% if i.flagged %}
+                        <div class="mb-3" style="background: rgb(253, 253, 253); padding: 10px; border-radius: 5px;">
+                            <div style="display:flex">
+                                {{i.name}}
+                                <div class="separator">|</div>
+                                {{i.social_platform}}
+                            </div>
+                            <hr>
+                            <div class="button-group">
+                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#v_influencer_{{i.id}}">Inspect</button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for flagged  Campaign -->
+        <div class="modal fade" id="view_flagged_campaign" data-bs-backdrop="static" data-bs-keyboard="false"
+            tabindex="-1" aria-labelledby="chooseLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: rgba(244, 244, 244, 0.871);">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="chooseLabel"><strong>Flagged Campaigns:</strong></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% for i in campaigns.query.all() %}
+                        {% if i.flagged %}
+                        <div class="mb-3" style="background: rgb(253, 253, 253); padding: 10px; border-radius: 5px;">
+                            <div style="display:flex">
+                                {{i.name}}
+                                <div class="separator">|</div>
+                                {{i.start_date}}--{{i.end_date}}
+                            </div>
+                            <hr>
+                            <div class="button-group">
+                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#v_campaign_{{i.id}}">Inspect</button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% for i in influencer.query.all() %}
+    {% if i.flagged %}
+    <!--Modal for View  Influencer-->
+    <div class="modal fade" id="v_influencer_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="v_influencer_title_{{i.id}}">Influencer Detail </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_influencerlabel_{{i.id}}"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center;padding: 20px;">
+                        {% if i.profile %}
+                        {% set loc=i.profile[1:] %}
+                        <img src="{{loc}}" alt="Unable to load image !!" height="200px" width="200px"
+                            style="border-radius: 50%;">
+                        {% else %}
+                        <div style="display: flex;">
+                            <img src="/static/Images_used/default_profile.png" alt="Unable to load image !!"
+                                height="200px" width="200px">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <p>
+                        <strong>Name: </strong>{{i.name}}<br>
+                        <strong>Social Platforms: </strong>{{i.social_platform}}<br>
+                        <strong>Category: </strong>{{i.category}}<br>
+                        <strong>Niche: </strong>{{i.niche}}<br>
+                        <strong>Social Media Link: </strong>{{i.socialMediaLink}}
+                    </p>
+                    {% if i.flagged%}
+                    <button class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_i_{{i.id}}">Unflag</button>
+                    {% else %}
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_i_{{i.id}}">Flag</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for flag_influencer -->
+    <div class="modal fade" id="flag_i_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flag_i_{{ i.id }}">
+                        {% if i.flagged%}
+                        Do you really want to Unflag it?
+                        {% else %}
+                        Do you really want to flag it?
+                        {% endif %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form action="{{ url_for('controller.find', email=user.email) }}" method="POST">
+                        <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                        <button name="flag_btn_i" class="btn btn-danger">
+                            {% if i.flagged%}
+                            Unflag
+                            {% else %}
+                            Flag
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% for i in campaigns.query.all() %}
+    {% if i.flagged %}
+    <!--Modal for View Campaign-->
+    <div class="modal fade" id="v_campaign_{{i.id}}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="v_campaign_title_{{i.id}}">Campaign Detail </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-bs-toggle="modal" data-bs-target="#v_campaignlabel_{{i.id}}"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>Name: </strong>{{i.name}}<br>
+                        <strong>Requirements: </strong>{{i.requirement}}<br>
+                        <strong>Start Date: </strong>{{i.start_date}}<br>
+                        <strong>End Date: </strong>{{i.end_date}}<br>
+                        <strong>Goals: </strong>{{i.goals}}<br>
+                        <strong>Sponsor: </strong>{{sponsor.query.get(i.sponsor_id).name}}<br>
+                    </p>
+                    <hr>
+                    {% if i.flagged%}
+                    <button class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_c_{{i.id}}">Unflag</button>
+                    {% else %}
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                        data-bs-target="#flag_c_{{i.id}}">Flag</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for flag_campaign -->
+    <div class="modal fade" id="flag_c_{{ i.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flag_c_{{ i.id }}">
+                        {% if i.flagged%}
+                        Do you really want to Unflag it?
+                        {% else %}
+                        Do you really want to flag it?
+                        {% endif %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form action="{{ url_for('controller.admin_dashboard', email=user.email) }}" method="POST">
+                        <textarea name="id" style="display:none">{{ i.id }}</textarea>
+                        <button name="flag_btn_c" class="btn btn-danger">
+                            {% if i.flagged%}
+                            Unflag
+                            {% else %}
+                            Flag
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/sessions')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#sessionsTable tbody');
+                    data.forEach(session => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                    <td>${session.id}</td>
+                    <td>${session.type}</td>
+                    <td>${session.user_id}</td>
+                    <td>${new Date(session.login_time).toLocaleString()}</td>
+                    <td>${session.logout_time ? new Date(session.logout_time).toLocaleString() : ''}</td>
+                `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching sessions:', error));
+
+            fetch('/get_flagged')
+                .then(response => response.json())
+                .then(data => {
+                    const flaggedInfluencers = document.querySelector('#flagged_i');
+                    const flaggedCampaigns = document.querySelector('#flagged_s');
+                    const flaggedIButton = document.querySelector('#flagged_i_btn');
+                    const flaggedCButton = document.querySelector('#flagged_c_btn');
+
+                    if (data.i_f == 0) {
+                        flaggedIButton.disabled = true;
+                    } else {
+                        flaggedIButton.disabled = false;
+                    }
+
+                    if (data.c_f == 0) {
+                        flaggedCButton.disabled = true;
+                    } else {
+                        flaggedCButton.disabled = false;
+                    }
+
+                    flaggedInfluencers.textContent = `Flagged Influencers: ${data.i_f}`;
+                    flaggedCampaigns.textContent = `Flagged Campaigns: ${data.c_f}`;
+
+                });
+        });
+    </script>
+
+    {% endif %}
+
+</div>
+{% endblock %}

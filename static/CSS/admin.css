@@ -1,0 +1,18 @@
+.active_cmpg,
+.flagged{
+  padding: 20px;
+  background: #ffffff8e;
+  border-radius: 20px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.w_m {
+    margin-right: 10px;
+    font-size: 3em;
+    color: rgb(255, 255, 255);
+    letter-spacing: 5px;
+    word-spacing: 20px;
+  }
+
+

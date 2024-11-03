@@ -1,0 +1,16 @@
+{% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert" style="position:absolute; width: 100%; z-index: 1050;">
+                    <strong>{{ message }}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            <script>
+              alert=document.querySelector(".alert")
+                setTimeout(function () {
+                    alert.style.display="none";
+                }, 1300);
+            </script>
+        {% endif %}
+    {% endwith %}

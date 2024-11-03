@@ -1,0 +1,191 @@
+{% extends 'base_main.html' %}
+{% block title %}Sponsor Dashboard{% endblock %}
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/sponsor.css">
+{% endblock %}
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page">Your Campaigns</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_dashboard',email=user.email)}}">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block body %}
+<div id="cmpg" style="width:100%; text-align: center;">
+    <div class="w_m mb-3">YOUR CAMPAINGS</div>
+    {% if user.campaigns %}
+    {% for campaign in user.campaigns %}
+    <div class="subcards mb-3" style="padding:20px">
+        <div class="card-content">
+            {{ campaign.name.capitalize() }}
+            <div class="separator" style="margin-left:50px;margin-right:50px;">|</div>
+            {{ campaign.start_date}}---to---{{ campaign.end_date}}
+        </div>
+
+        <div class="btn_operations" style="position: absolute; right: 30px; gap:10px">
+
+            <a class="btn btn-success"
+                href="{{url_for('controller.view_campaign',email=user.email,campaign_id=campaign.id)}}">View</a>
+            <button class="btn btn-warning" data-bs-toggle="modal"
+                data-bs-target="#edit_{{ campaign.id }}">Edit</button>
+            <button class="btn btn-danger" data-bs-toggle="modal"
+                data-bs-target="#delete_{{ campaign.id }}">Delete</button>
+        </div>
+    </div>
+
+
+    <!--Modal for editing campaign-->
+    <div class="modal fade" id="edit_{{campaign.id}}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: rgba(244, 244, 244, 0.871);">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel"><strong>Edit your Campaign</strong></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="text-align: left;">
+                    <form action="{{ url_for('controller.sponsor_campaign', email=user.email) }}" method="POST">
+                        <label for="name" class="form-label">Enter Campaign Name:</label>
+                        <input type="text" class="form-control" name="name" value="{{campaign.name}}" placeholder="Name"
+                            required>
+                        <br>
+                        <label for="description" class="form-label">Fill in the description:</label>
+                        <textarea name="description" class="form-control"
+                            placeholder="Give a short description of the campaign ..."
+                            required>{{campaign.description}}</textarea>
+                        <br>
+                        <label for="budget" class="form-label">Enter your Budget:</label>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="budget" value="{{campaign.budget}}"
+                                required>
+                            <span class="input-group-text">.00</span>
+                        </div>
+                        <label for="startDate" class="form-label">Start Date:</label>
+                        <input type="date" class="form-control" id="startDate" name="start_date"
+                            value="{{campaign.start_date}}" min="{{today}}" required>
+                        <br>
+                        <label for="endDate" class="form-label">End Date:</label>
+                        <input type="date" class="form-control" id="endDate" name="end_date"
+                            value="{{campaign.end_date}}" min="{{today}}" required>
+                        <br>
+                        <label class="form-label" for="visibility">Select Visibility:</label>
+                        <select name="visibility" class="form-select" aria-label="Default select example" required>
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                        </select>
+                        <br>
+                        <label for="niche" class="form-label">Enter Campaign Niche:</label>
+                        <input type="text" class="form-control" name="niche" placeholder="Niche Here"  value="{{campaign.niche}}" required>
+                        <br>
+                        <label for="goals" class="form-label">Fill in the description:</label>
+                        <textarea name="goals" class="form-control"
+                            placeholder="List your goals ...">{{campaign.goals}}</textarea>
+                        <br>
+                        <textarea name="campaign_id_edit" style="display: none;">{{campaign.id}}</textarea>
+                        <button type="submit" name="edit" class="btn btn-primary">Edit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--Modal for delete confirmation-->
+    <div class="modal fade" id="delete_{{ campaign.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="delete_label{{ campaign.id }}">Are you Sure you want to delete
+                        "{{campaign.name}}"</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('controller.sponsor_campaign', email=user.email) }}" method="POST">
+                        <textarea name="campaign_id_delete" style="display: none;">{{campaign.id}}</textarea>
+                        <button type="submit" class="btn btn-danger" name="delete">Delete</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+    {% else %}
+    <p style="color:white">No campaigns found.</p>
+    {% endif %}
+
+    <button id="round_btn" data-bs-toggle="modal" data-bs-target="#form"></button>
+</div>
+
+<!-- Modal for adding Campaign -->
+<div class="modal fade" id="form" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: rgba(244, 244, 244, 0.871);">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel"><strong>Add Campaign</strong></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('controller.sponsor_campaign', email=user.email) }}" method="POST">
+                    <label for="name" class="form-label">Enter Campaign Name:</label>
+                    <input type="text" class="form-control" name="name" placeholder="Name Here" required>
+                    <br>
+                    <label for="description" class="form-label">Fill in the description:</label>
+                    <textarea name="description" class="form-control"
+                        placeholder="Give a short description of the campaign ..." required></textarea>
+                    <br>
+                    <label for="budget" class="form-label">Enter your Budget:</label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" name="budget" required>
+                        <span class="input-group-text">.00</span>
+                    </div>
+                    <label for="startDate" class="form-label">Start Date:</label>
+                    <input type="date" class="form-control" id="startDate" name="start_date" min="{{today}}" required>
+                    <br>
+                    <label for="endDate" class="form-label">End Date:</label>
+                    <input type="date" class="form-control" id="endDate" name="end_date" min="{{today}}" required>
+                    <br>
+                    <label class="form-label" for="visibility">Select Visibility:</label>
+                    <select name="visibility" class="form-select" aria-label="Default select example" required>
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                    </select>
+                    <br>
+                    <label for="niche" class="form-label">Enter Campaign Niche:</label>
+                    <input type="text" class="form-control" name="niche" placeholder="Niche Here" required>
+                    <br>
+                    <label for="goals" class="form-label">Fill in the description:</label>
+                    <textarea name="goals" class="form-control" placeholder="List your goals ..."></textarea>
+                    <br>
+                    <button type="submit" name="new" class="btn btn-primary">ADD</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base_login.html'%}
+{% block title %}Sponsor login{% endblock %}
+{% block page %}
+<div id="main">
+    <div class="login_signup_card">
+        <div class="head_btn">
+            <div class="form_head">SPONSOR LOGIN/SIGNUP</div>
+            <div class="ls_btn">
+                <button class="btn btn-outline-dark" id="sl_btn" style="background:white; color: black;">Login</button>
+                <button class="btn btn-outline-dark" id="ss_btn" style="background: black; color: white;">Signup</button>
+            </div>
+        </div>
+        <div class="ls_forms" style="margin-top: 3%; position:relative;">
+            <div id="sponsor_forms" style="display:block">
+
+                <hr>
+                <div id="sponsor_signup">
+                    <form class="" action="{{url_for('controller.sponsor_login')}}" method="POST">
+                        <div class="mb-3">'
+                            <label for="name" class="form-label">Enter Organization/Individual Name:</label>
+                            <input type="text" name="name" class="form-control" placeholder="Name" required>
+                            <br>
+                            <label for="email" class="form-label">Enter E-mail: </label>
+                            <input name="email" class="form-control" type="email" placeholder="example@gmail.com"
+                                required>
+                            <br>
+                            <label for="type" class="form-label">Select User Type :</label>
+                            <select class="form-control" name="type" required>
+                                <option value="Individual">Individual</option>
+                                <option value="Organization">Organization</option>
+                            </select> <br>
+                            <label for="password" class="form-label">Enter your Password:</label>
+                            <input type="password" class="form-control" name="password" placeholder="*****" required>
+                            <br>
+                            <button type="submit" name="signup" class="btn btn-primary">SUBMIT</button>
+
+                        </div>
+                    </form>
+                </div>
+                <div id="sponsor_login">
+                    <form class="" action="{{url_for('controller.sponsor_login')}}" method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Enter E-mail: </label>
+                            <input name="email" class="form-control" type="email" placeholder="example@gmail.com"
+                                required>
+                            <br>
+                            <label for="password" class="form-label">Enter Password:</label>
+                            <input name="password" class="form-control" type="password" placeholder="*****" required>
+                            <br>
+                            <button type="submit" name="login" class="btn btn-primary">LOGIN</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>const ls_sl_btn = document.querySelector("#sl_btn");
+    const ls_ss_btn = document.querySelector("#ss_btn");
+    const ls_sl_form = document.querySelector("#sponsor_login");
+    const ls_ss_form = document.querySelector("#sponsor_signup");
+
+    ls_sl_btn.onclick = () => {
+        ls_ss_form.style.display = "none";
+        ls_sl_form.style.display = "block";
+        ls_sl_btn.style.background = "white";
+        ls_sl_btn.style.color = "black";
+        ls_ss_btn.style.background = "black";
+        ls_ss_btn.style.color = "white";
+    };
+    ls_ss_btn.onclick = () => {
+        ls_sl_form.style.display = "none";
+        ls_ss_form.style.display = "block";
+        ls_sl_btn.style.background = "black";
+        ls_sl_btn.style.color = "white";
+        ls_ss_btn.style.background = "white";
+        ls_ss_btn.style.color = "black";
+    };
+</script>
+{% endblock %}

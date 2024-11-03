@@ -1,0 +1,93 @@
+{% extends 'base_login.html'%}
+{% block title %}Influencer login{% endblock %}
+
+
+{% block page %}
+<div id="main">
+    <div class="login_signup_card">
+        <div class="head_btn">
+            <div class="form_head">INFLUENCER LOGIN/SIGNUP</div>
+            <div class="ls_btn">
+                <button class="btn btn-outline-dark" id="il_btn" style="background:white; color: black;">Login</button>
+                <button class="btn btn-outline-dark" id="is_btn" style="background:black; color: white;">Signup</button>
+            </div>
+        </div>
+        <div class="ls_forms" style="margin-top: 3%; position:relative;">
+            <div id="influencer_forms" style="display:block;">
+                <hr>
+
+                <div id="influencer_signup">
+                    <form  action="{{url_for('controller.influencer_login')}}" method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Enter your E-mail: </label>
+                            <input type="email" name="email" class="form-control" placeholder="example@gmail.com"
+                                required>
+                            <br>
+                            <label for="password" class="form-label">Enter your password:</label>
+                            <input type="password" name="password" class="form-control" placeholder="*****" required>
+                            <br>
+                            <label for="name" class="form-label">Enter your Name:</label>
+                            <input type="text" name="name" class="form-control" placeholder="Name" maxlength="10" required>
+                            <br>
+                            <label for="sociallink" class="form-label">Enter your social media link:</label>
+                            <input type="text" name="sociallink" class="form-control" placeholder="link here" required>
+                            <br>
+                            <label for="platform" class="form-label">Select Your Platform:</label><br>
+                            <input type="checkbox" class="form-check-input" name="platform" value="Youtube"> Youtube      
+                            <input type="checkbox" class="form-check-input" name="platform" value="Instagram"> Instagram    
+                            <input type="checkbox" class="form-check-input" name="platform" value="Facebook"> Facebook    
+                            <br><br>
+                            <label for="category" class="form-label">Enter your social media Category:</label>
+                            <input type="text" name="category" class="form-control" placeholder="category here"
+                                required>
+                            <br>
+                            <label for="niche" class="form-label">What is your Niche:</label>
+                            <input type="text" name="niche" class="form-control" placeholder="Niche" required>
+                            <br>
+                            <button type="submit" name="signup" class="btn btn-primary">SUBMIT</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="influencer_login">
+                    <form class="" action="{{url_for('controller.influencer_login')}}" method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Enter E-mail: </label>
+                            <input name="email" class="form-control" type="email" placeholder="example@gmail.com"
+                                required>
+                            <br>
+                            <label for="password" class="form-label">Enter Password:</label>
+                            <input name="password" class="form-control" type="password" placeholder="*****" required>
+                            <br>
+                            <button type="submit" name="login" class="btn btn-primary">LOGIN</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>const ls_il_btn = document.querySelector("#il_btn");
+    const ls_is_btn = document.querySelector("#is_btn");
+    const ls_il_form = document.querySelector("#influencer_login");
+    const ls_is_form = document.querySelector("#influencer_signup");
+
+    ls_il_btn.onclick = () => {
+        ls_is_form.style.display = "none";
+        ls_il_form.style.display = "block";
+        ls_il_btn.style.background = "white";
+        ls_il_btn.style.color = "black";
+        ls_is_btn.style.background = "black";
+        ls_is_btn.style.color = "white";
+    };
+    ls_is_btn.onclick = () => {
+        ls_il_form.style.display = "none";
+        ls_is_form.style.display = "block";
+        ls_il_btn.style.background = "black";
+        ls_il_btn.style.color = "white";
+        ls_is_btn.style.background = "white";
+        ls_is_btn.style.color = "black";
+    };
+</script>
+{% endblock %}

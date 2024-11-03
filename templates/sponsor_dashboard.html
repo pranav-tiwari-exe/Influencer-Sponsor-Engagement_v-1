@@ -1,0 +1,82 @@
+{% extends 'base_main.html' %}
+{% block title %}Sponsor Dashboard{% endblock %}
+{% include 'message.html' %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/CSS/sponsor.css">
+{% endblock %}
+
+
+{% block navbar_content %}
+<ul class="navbar-nav">
+    <li class="nav-item">
+        <a class="nav-link active" aria-current="page">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.sponsor_campaign',email=user.email)}}">Your Campaings</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.find',email=user.email)}}">Find</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('controller.stats',email=user.email)}}">Stats</a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-outline-danger" style="right: 10px; position:absolute"
+            href="{{url_for('controller.logout',email=user.email)}}">Logout</a>
+    </li>
+</ul>
+{% endblock %}
+
+
+{% block body %}
+
+<div class="cmpg">
+    <div class="w_m">WELCOME {{user.name}}</div>
+    <div class="active_cmpg">
+        <p class="subHeading">ACTIVE CAMPAINGS</p>
+        {% if user.campaigns %}
+        {% for c in user.campaigns %}
+        {% if c.status=="Active" %}
+        <div class="subcards mb-3">
+            Name: {{c.name}}<br>
+            <div class="separator">|</div>
+            Niche: {{c.niche}}
+            <div class="separator">|</div>
+            {{c.start_date}} --- {{c.end_date}}
+
+            <div class="button-group">
+                <a class="btn btn-success"
+                    href="{{url_for('controller.view_campaign',email=user.email,campaign_id=c.id)}}">View</a>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div class="cmpg_request" style="position:relative">
+        <p class="subHeading">PENDING REQUESTS</p>
+        {% for i in user.campaigns %}
+        {% for j in i.ad_requests %}
+        {% if j.status=="Pending" %}
+        <div class="subcards mb-3">
+            Request ID: {{j.id}}
+            <div class="separator">|</div>
+            Influencer: {{Influencer.query.get(j.influencer_id).name}}
+            <div class="separator">|</div>
+            Campaign: {{i.name}}
+            <div class="separator">|</div>
+            Payment_Amount: $ {{j.payment_amount}}
+            <div class="button-group">
+                <a class="btn btn-success"
+                    href="{{url_for('controller.view_campaign',email=user.email,campaign_id=j.campaign_id)}}">View</a>
+                
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
